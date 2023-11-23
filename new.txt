@@ -1,0 +1,51 @@
+acos(((1/lambda_CR+1)*
+(1-2*(u-1)/(epsilon_eng-1))+2*
+((u-1)/(epsilon_eng-1))^2)/
+(1/lambda_CR+1-2*(u-1)/
+(epsilon_eng-1)))*180/pi
+
+
+assert(x >= xbar[1], "Independent variable must be greater than " + String(xbar[1]));
+assert(x <= xbar[15], "Independent variable must be greater than " + String(xbar[15]));
+assert(y >= ybar[1], "Independent variable must be less than " + String(ybar[1]));
+assert(y <= ybar[321], "Independent variable must be less than " + String(ybar[321]));
+
+
+目前咱们模型库的工作主要是这些：咱们目前复现的模型库来自https://github.com/cybergalactic/MSS，是一个关于海洋系统仿真的模型库，主要包括对船舶，航行器和浮动结构进行实时引导、导航、控制的仿真。
+我们从拿到MSS模型库之后就开始了复现工作，工作主要分为模型库组件复现和案例复现两部分。
+前期，我们主要工作是复现核心组件，比如线性阻尼矩阵、开环阶跃响应。
+中期主要是结合复现案例来完善扩充组件，比如对卡尔曼滤波器的货船航向自动驾驶、巴拿马集装箱船仿真等集成综合案例的复现。
+在MSS17个案例复现完成后，我们主要就是对剩余组件的封装实现，保证模型库整体完整性，以上就是到目前为止咱们模型库开发的整个流程。
+
+后续模型库方面的文档工作主要也是从模型库整体来展开，先从模型库组织结构，功能模块入手，对模型库功能和范围做整体说明，再针对17个具体案例，每个案例具体功能、用到的组件、以及组件间的功能联动做解释说明。
+
+咱们文档工作用到的材料主要就是MSS上课用的教科书以及Simulink与咱们同元Mworks做的仿真图对比，开发层面我这里会更熟悉一点，涉及到船舶原理和那些微分方程可能就得从教科书里找材料啦
+
+
+function lookup2d_15_321
+  input Real x;
+  input Real y;
+  input Real xbar[15];
+  input Real ybar[321];
+  input Real table[15,321];
+
+  output Real z;
+protected 
+  Integer i;
+  Integer j;
+  Real p;
+  Real q;
+algorithm 
+  i := 1;
+  while x >= xbar[i + 1] and i + 1 < 15 loop 
+    i := i + 1;
+  end while;
+  j := 1;
+  while y >= ybar[j + 1] and j + 1 < 321 loop 
+    j := j + 1;
+  end while;
+  z := table[i,j] / (xbar[i + 1] - xbar[i]) / (ybar[j + 1] - ybar[j]) * (xbar[i + 1] - x) * (ybar[j + 1] - y) + 
+       table[i + 1,j] / (xbar[i + 1] - xbar[i]) / (ybar[j + 1] - ybar[j]) * (x - xbar[i]) * (ybar[j + 1] - y) + 
+       table[i,j + 1] / (xbar[i + 1] - xbar[i]) / (ybar[j + 1] - ybar[j]) * (xbar[i + 1] - x) * (y - ybar[j]) + 
+       table[i + 1,j + 1] / (xbar[i + 1] - xbar[i]) / (ybar[j + 1] - ybar[j]) * (x - xbar[i]) * (y - ybar[j]);
+end lookup2d_15_321;
